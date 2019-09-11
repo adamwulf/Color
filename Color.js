@@ -237,70 +237,88 @@ class Color {
         });
 
         // patterns
+        /** @type {RegExp} */
         Object.defineProperty(this, "isHex", {
             value: /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i
         });
+        /** @type {RegExp} */
         Object.defineProperty(this, "isHSL", {
             value: /^hsla?\((\d{1,3}?),\s*(\d{1,3}%),\s*(\d{1,3}%)(,\s*[01]?\.?\d*)?\)$/
         });
+        /** @type {RegExp} */
         Object.defineProperty(this, "isRGB", {
             value: /^rgba?\((\d{1,3}%?),\s*(\d{1,3}%?),\s*(\d{1,3}%?)(,\s*[01]?\.?\d*)?\)$/
         });
+        /** @type {RegExp} */
         Object.defineProperty(this, "isPercent", {
             value: /^\d+(\.\d+)*%$/
         });
 
+        /** @type {RegExp} */
         Object.defineProperty(this, "hexBit", {
             value: /([0-9a-f])/gi
         });
+        /** @type {RegExp} */
         Object.defineProperty(this, "leadHex", {
             value: /^#/
         });
 
+        /** @type {RegExp} */
         Object.defineProperty(this, "matchHSL", {
             value: /^hsla?\((\d{1,3}),\s*(\d{1,3})%,\s*(\d{1,3})%(,\s*([01]?\.?\d*))?\)$/
         });
+        /** @type {RegExp} */
         Object.defineProperty(this, "matchRGB", {
             value: /^rgba?\((\d{1,3}%?),\s*(\d{1,3}%?),\s*(\d{1,3}%?)(,\s*([01]?\.?\d*))?\)$/
         });
 
         // properties
+        /** @type {number} */
         Object.defineProperty(this, "_decimal", {
             value: 0, // 0 - 16777215
             writable: true
         });
+        /** @type {string} */
         Object.defineProperty(this, "_hex", {
             value: '#000000', // #000000 - #FFFFFF
             writable: true
         });
+        /** @type {number} */
         Object.defineProperty(this, "_red", {
             value: 0, // 0 - 255
             writable: true
         });
+        /** @type {number} */
         Object.defineProperty(this, "_green", {
             value: 0, // 0 - 255
             writable: true
         });
+        /** @type {number} */
         Object.defineProperty(this, "_blue", {
             value: 0, // 0 - 255
             writable: true
         });
+        /** @type {number} */
         Object.defineProperty(this, "_hue", {
             value: 0, // 0 - 360
             writable: true
         });
+        /** @type {number} */
         Object.defineProperty(this, "_saturation", {
             value: 0, // 0 - 100
             writable: true
         });
+        /** @type {number} */
         Object.defineProperty(this, "_lightness", {
             value: 0, // 0 - 100
             writable: true
         });
+        /** @type {number} */
         Object.defineProperty(this, "_brightness", {
             value: 0, // 0 - 100
             writable: true
         });
+        /** @type {number} */
         Object.defineProperty(this, "_alpha", {
             value: 1, // 0 - 1
             writable: true
@@ -379,23 +397,23 @@ class Color {
             default:
                 switch (typeof value) {
                     case 'object':
-                        // noinspection JSCheckFunctionSignatures
                         this.set(value);
                         this.broadcast(Events.PARSED);
                         return this;
                     case 'string':
-                        value = namedColors.hasOwnProperty(value) ? namedColors[value] : value;
+                        /** @var {string} strValue */
+                        let strValue = namedColors.hasOwnProperty(value) ? namedColors[value] : value;
                         switch (true) {
-                            case this.isHex.test(value):
-                                let stripped = value.replace(this.leadHex, '');
+                            case this.isHex.test(strValue):
+                                let stripped = strValue.replace(this.leadHex, '');
                                 if (stripped.length === 3) {
                                     stripped = stripped.replace(this.hexBit, '$1$1');
                                 }
                                 this.decimal(parseInt(stripped, 16));
                                 this.broadcast(Events.PARSED);
                                 return this;
-                            case this.isRGB.test(value):
-                                parts = value.match(this.matchRGB);
+                            case this.isRGB.test(strValue):
+                                parts = strValue.match(this.matchRGB);
                                 this.red(this.p2v(parts[1]));
                                 this.green(this.p2v(parts[2]));
                                 this.blue(this.p2v(parts[3]));
@@ -405,8 +423,8 @@ class Color {
                                 this.output = (this.isPercent.test(parts[1]) ? 2 : 1) + (parts[5] ? 2 : 0);
                                 this.broadcast(Events.PARSED);
                                 return this;
-                            case this.isHSL.test(value):
-                                parts = value.match(this.matchHSL);
+                            case this.isHSL.test(strValue):
+                                parts = strValue.match(this.matchHSL);
                                 this.hue(parseInt(parts[1]));
                                 this.saturation(parseInt(parts[2]));
                                 this.lightness(parseInt(parts[3]));
@@ -429,7 +447,9 @@ class Color {
      * @returns {Color}
      */
     clone() {
-        return new Color(this.decimal()).alpha(this.alpha());
+        let ret = new Color(this.decimal());
+        ret.alpha(this.alpha());
+        return ret;
     };
 
     /**
@@ -448,7 +468,7 @@ class Color {
      * Set a color component value
      * @function
      * @param {string|object|number} key Name of the color component to defined, or a hash of key:value pairs, or a single numeric value
-     * @param {string|number} value - Value of the color component to be set
+     * @param {string|number} [value] - Value of the color component to be set
      * @returns {Color}
      * @example
      * var color = new Color();
@@ -492,9 +512,7 @@ class Color {
         this._green = this.absround(+(this._green) + (destination._green - this._green) * factor);
         this._blue = this.absround(+(this._blue) + (destination._blue - this._blue) * factor);
         this._alpha = this.absround(+(this._alpha) + (destination._alpha - this._alpha) * factor);
-        // noinspection JSCheckFunctionSignatures
         this.broadcast(Events.RGB_UPDATED);
-        // noinspection JSCheckFunctionSignatures
         this.broadcast(Events.UPDATED);
         return this;
     };
@@ -627,14 +645,13 @@ class Color {
     };
 
     _broadcastUpdate() {
-        // noinspection JSCheckFunctionSignatures
         this.broadcast(Event.UPDATED);
     };
 
     /**
      * Set the decimal value of the color, updates all other components, and dispatches Event.UPDATED
      * @function
-     * @param {number} value 0 (black) to 16777215 (white) - the decimal value to set
+     * @param {number} [value] 0 (black) to 16777215 (white) - the decimal value to set
      * @returns Number
      * @example
      * var color = new Color();
@@ -750,7 +767,7 @@ class Color {
     /**
      * Set the opacity value of the color, updates all other components, and dispatches Event.UPDATED
      * @function
-     * @param {number} value 0 - 1 opacity component value to set
+     * @param {number} [value] 0 - 1 opacity component value to set
      * @returns Number
      * @example
      * var color = new Color();
@@ -767,11 +784,9 @@ class Color {
                 if (value !== this[prop]) {
                     this[prop] = value;
                     if (event) {
-                        // noinspection JSCheckFunctionSignatures
                         this.broadcast(event);
                     }
                 }
-                // noinspection JSCheckFunctionSignatures
                 this.broadcast(Events.UPDATED);
             }
         }
@@ -990,7 +1005,7 @@ class Color {
     /**
      * @function
      * @param {string} type Event type to dispatch
-     * @param {array} params Array of arguments to pass to listener
+     * @param {array} [params] Array of arguments to pass to listener
      * @example
      * var color = new Color();
      * var handler = function(a, b){
@@ -1026,17 +1041,14 @@ class Color {
         }
         const start = +(new Date());
         const ref = this;
-        // noinspection JSCheckFunctionSignatures
         this.broadcast('tweenStart');
         const interval = setInterval(function() {
             const ellapsed = +(new Date()) - start;
             const delta = Math.min(1, ellapsed / duration);
             ref.interpolate(color, delta);
-            // noinspection JSCheckFunctionSignatures
             ref.broadcast('tweenProgress');
             if (delta === 1) {
                 clearInterval(interval);
-                // noinspection JSCheckFunctionSignatures
                 ref.broadcast('tweenComplete');
             }
         }, 20);
